@@ -29,6 +29,8 @@ menu = st.sidebar.selectbox("Menú", [
     "Catálogo de Cuentas",
     "Módulo de Pólizas",
     "Consultas (Auxiliares y Balanzas)",
+    "Estado de Resultados",
+    "Balance General",
     "Configuración"
 ])
 
@@ -38,15 +40,76 @@ def mostrar_balanza():
         st.warning("No hay movimientos registrados.")
         return
     balanza = st.session_state['polizas'].groupby('Cuenta').agg({'Debe': 'sum', 'Haber': 'sum'}).reset_index()
+
+    # Mostrar la balanza
     st.dataframe(balanza)
+
+    # Mostrar las sumas finales de debe y haber
+    total_debe = balanza['Debe'].sum()
+    total_haber = balanza['Haber'].sum()
+
+    st.write("### Totales")
+    st.write(f"Total Debe: {total_debe:.2f}")
+    st.write(f"Total Haber: {total_haber:.2f}")
+
+# Función para mostrar el estado de resultados
+def mostrar_estado_resultados():
+    if st.session_state['polizas'].empty:
+        st.warning("No hay movimientos registrados.")
+        return
+
+    # Filtrar las cuentas de ingresos y gastos
+    ingresos = st.session_state['catalogo_cuentas'][st.session_state['catalogo_cuentas']['Tipo'] == 'Ingresos']['Código']
+    gastos = st.session_state['catalogo_cuentas'][st.session_state['catalogo_cuentas']['Tipo'] == 'Gastos']['Código']
+
+    # Sumar los movimientos de ingresos y gastos
+    ingresos_sum = st.session_state['polizas'][st.session_state['polizas']['Cuenta'].isin(ingresos)].agg({'Debe': 'sum', 'Haber': 'sum'})
+    gastos_sum = st.session_state['polizas'][st.session_state['polizas']['Cuenta'].isin(gastos)].agg({'Debe': 'sum', 'Haber': 'sum'})
+
+    # Calcular el estado de resultados
+    ingresos_totales = ingresos_sum['Haber'] - ingresos_sum['Debe']
+    gastos_totales = gastos_sum['Debe'] - gastos_sum['Haber']
+    utilidad = ingresos_totales - gastos_totales
+
+    st.write("### Estado de Resultados")
+    st.write(f"Ingresos Totales: {ingresos_totales:.2f}")
+    st.write(f"Gastos Totales: {gastos_totales:.2f}")
+    st.write(f"Utilidad Neta: {utilidad:.2f}")
+
+# Función para mostrar el balance general
+def mostrar_balance_general():
+    if st.session_state['polizas'].empty:
+        st.warning("No hay movimientos registrados.")
+        return
+
+    # Filtrar las cuentas de activos, pasivos y capital
+    activos = st.session_state['catalogo_cuentas'][st.session_state['catalogo_cuentas']['Tipo'] == 'Activo']['Código']
+    pasivos = st.session_state['catalogo_cuentas'][st.session_state['catalogo_cuentas']['Tipo'] == 'Pasivo']['Código']
+    capital = st.session_state['catalogo_cuentas'][st.session_state['catalogo_cuentas']['Tipo'] == 'Capital']['Código']
+
+    # Sumar los movimientos de cada tipo de cuenta
+    activos_sum = st.session_state['polizas'][st.session_state['polizas']['Cuenta'].isin(activos)].agg({'Debe': 'sum', 'Haber': 'sum'})
+    pasivos_sum = st.session_state['polizas'][st.session_state['polizas']['Cuenta'].isin(pasivos)].agg({'Debe': 'sum', 'Haber': 'sum'})
+    capital_sum = st.session_state['polizas'][st.session_state['polizas']['Cuenta'].isin(capital)].agg({'Debe': 'sum', 'Haber': 'sum'})
+
+    # Calcular el balance
+    total_activos = activos_sum['Debe'] - activos_sum['Haber']
+    total_pasivos = pasivos_sum['Haber'] - pasivos_sum['Debe']
+    total_capital = capital_sum['Haber'] - capital_sum['Debe']
+
+    st.write("### Balance General")
+    st.write(f"Total Activos: {total_activos:.2f}")
+    st.write(f"Total Pasivos: {total_pasivos:.2f}")
+    st.write(f"Total Capital: {total_capital:.2f}")
 
 # Inicio
 if menu == "Inicio":
-    st.title("Sistema Contable de Información Financiera")
-    st.write("Bienvenido al Sistema Contable para la materia de Sistemas Contables de Información Financiera.")
+  # Mostrar imagen al inicio (ajusta la ruta o URL de la imagen)
+    st.image("UNRC.png", caption="Universidad Nacional Rosario Castellanos", width=550)
 
-    # Mostrar imagen al inicio (ajusta la ruta o URL de la imagen)
-    st.image("UNRC.png", caption="Universidad Nacional Rosario Castellanos", width=350)
+    st.title("Sistema Contable de Información Financiera")
+    st.write("Bienvenido al Sistema Contable para la UCA de Sistemas Contables de Información Financiera.")
+
 
 # Catálogo de cuentas
 elif menu == "Catálogo de Cuentas":
@@ -118,6 +181,14 @@ elif menu == "Consultas (Auxiliares y Balanzas)":
 
     st.write("### Balanza de Comprobación")
     mostrar_balanza()
+
+# Mostrar el Estado de Resultados
+elif menu == "Estado de Resultados":
+    mostrar_estado_resultados()
+
+# Mostrar el Balance General
+elif menu == "Balance General":
+    mostrar_balance_general()
 
 # Configuración
 elif menu == "Configuración":
