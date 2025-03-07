@@ -45,6 +45,9 @@ if menu == "Inicio":
     st.title("Sistema Contable de Información Financiera")
     st.write("Bienvenido al Sistema Contable para la materia de Sistemas Contables de Información Financiera.")
 
+    # Mostrar imagen al inicio (ajusta la ruta o URL de la imagen)
+    st.image("UNRC.png", caption="Universidad Nacional Rosario Castellanos", width=350)
+
 # Catálogo de cuentas
 elif menu == "Catálogo de Cuentas":
     st.title("Catálogo de Cuentas")
@@ -125,7 +128,7 @@ elif menu == "Configuración":
 
     if st.button("Guardar Configuración"):
         st.session_state['configuracion']['Empresa'] = empresa
-        st.session_state['configuracion']['RFC'] = rfc
+        st.session_state['configuracion']['RFC con homoclave SAT'] = rfc
         st.success("Configuración guardada correctamente")
 
     st.write("### Configuración Actual")
